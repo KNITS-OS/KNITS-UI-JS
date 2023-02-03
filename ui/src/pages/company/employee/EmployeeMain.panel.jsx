@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { useDispatch, useSelector } from "react-redux";
 import { TabContent, TabPane } from "reactstrap";
 
 import { businessUnitsData } from "__mocks/data/business-units-mocks";
@@ -13,101 +13,62 @@ import {
   jobTitlesDataAsSelectOptions,
 } from "common/category-utils";
 
+import {
+  createEmployee,
+  deleteEmployee,
+  searchEmployees,
+  updateEmployee,
+  selectAllEmployeeData 
+} from "redux/features";
+
 import { CreateEmployeePanel } from "./create-employee/CreateEmployee.panel";
 import { EmployeeDetailsPanel } from "./employee-details/EmployeeDetails.panel";
 import { EMPLOYEE_CREATE, EMPLOYEE_DETAILS, EMPLOYEE_SEARCH } from "./employee.routes.consts";
 import { SearchEmployeesPanel } from "./search-employees/SearchEmployees.panel";
 import { alerts } from "components/feedback";
-import { employeeService } from "api";
 
 export const EmployeeMainPanel = () => {
   const [activePanel, setActivePanel] = useState(EMPLOYEE_SEARCH);
-  const [employees, setEmployees] = useState([]);
+
   const [currentEmployee, setCurrentEmployee] = useState({});
 
+  const dispatch = useDispatch();
+  const employees = useSelector(selectAllEmployeeData);
+ 
   const departments = departmentDataAsSelectOptions(departmentsData);
   const countriesData = countriesDataAsSelectOptions(countries());
   const businessUnits = businessUnitsDataAsSelectOptions(businessUnitsData);
   const jobtitles = jobTitlesDataAsSelectOptions(jobTitlesData);
-
-  const onCreateNew = async (newEmployee) => {
-    try {
-      const { data } = await employeeService.createEmployee(newEmployee);
-      data && setEmployees([...employees, data]);
-
-      alerts.successAlert("Saved with success", "Success");
-      return await Promise.resolve();
-    } catch (err) {
-      let message = "Unknown Error";
-      if (err) message = err.message;
-      alerts.errorAlert(message, "Attention!");
-      return await Promise.reject(err);
-    }
+ 
+  const onCreateNew = (newEmployee) => {
+    dispatch(createEmployee(newEmployee));
+    alerts.successAlert("Saved with success", "Success");
   };
 
-  const onSave = async (partialEmployee) => {
-    try {
-      console.log(partialEmployee);
-      const { data } = await employeeService.updateEmployee(partialEmployee);
-      alerts.successAlert("Saved with success", "Success");
-      console.log(data);
-      data &&
-        setEmployees(
-          employees.map((employee) =>
-            employee.id === data.id ? data : employee
-          )
-        );
-      return await Promise.resolve();
-    } catch (err) {
-      let message = "Unknown Error";
-      if (err) message = err.message;
-      alerts.errorAlert(message, "Attention!");
-      return await Promise.reject(err);
-    }
+  const onSave = (partialEmployee) => {
+    dispatch(updateEmployee(partialEmployee));
+    alerts.successAlert("Updated with success", "Success");
   };
 
-  const onViewEmployeeDetails = async (id) => {
+  const onViewEmployeeDetails = (id) => {
     const foundEmployee = employees.find((employee) => employee.id === id);
     setCurrentEmployee(foundEmployee);
     setActivePanel(EMPLOYEE_DETAILS);
   };
 
-  const onSearchEmployees = async (employeeSearchRequest) => {
-    try {
-      const { data } = await employeeService.searchEmployees(
-        employeeSearchRequest
-      );
-      setEmployees(data);
-      return await Promise.resolve();
-    } catch (err) {
-      let message = "Unknown Error";
-      if (err) message = err.message;
-      alerts.errorAlert(message, "Attention!");
-      return await Promise.reject(err);
-    }
+  const onSearchEmployees = (employeeSearchRequest) => {
+    dispatch(searchEmployees(employeeSearchRequest));
   };
 
   const onDelete = async (id) => {
     const { isConfirmed } = await alerts.confirmActionDanger("Are you sure?");
     if (isConfirmed) {
-      await onDeleteConfirmed(id);
+      dispatch(deleteEmployee(parseInt(id)));
+      alerts.successAlert("Employee deleted with success", "Success");
     }
+    
   };
 
-  const onDeleteConfirmed = async (id) => {
-    try {
-      await employeeService.deleteEmployee(id);
-      alerts.successAlert("Employee deleted with success", "Success");
-      const { data } =await employeeService.findAllEmployees();
-      setEmployees(data);
-      return await Promise.resolve();
-    } catch (err) {
-      let message = "Unknown Error";
-      if (err) message = err.message;
-      alerts.errorAlert(message, "Attention!");
-      return await Promise.reject(err);
-    }
-  };
 
   return (
     <>
