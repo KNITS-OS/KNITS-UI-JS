@@ -24,7 +24,6 @@ export const SearchEmployeesFilterPanel = ({
   const [jobTitleSelected, setJobTitleSelected] = useState(SELECT_ALL);
   const [searchHiringDateFrom, setSearchHiringDateFrom] = useState();
   const [searchHiringDateTo, setSearchHiringDateTo] = useState();
-  console.log(setSubmitting);
 
   const resetFilters = () => {
     setBusinessUnitSelected(SELECT_ALL);
