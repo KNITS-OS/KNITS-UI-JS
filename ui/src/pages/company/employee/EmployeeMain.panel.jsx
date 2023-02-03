@@ -32,13 +32,23 @@ export const EmployeeMainPanel = () => {
 
   const onCreateNew = newEmployee => {
     console.log(newEmployee);
+    setEmployees([...employees, newEmployee]);
     alerts.confirmActionSuccess("Employee saved with success");
   };
 
   const onSave = partialEmployee => {
-    console.log(partialEmployee);
+    console.log(partialEmployee);   
+    const updatedEmployees = employees.map((employee) => {
+      if (employee.id === partialEmployee.id) {
+        return {
+          ...employee,
+          ...partialEmployee,
+        };
+      }
+      return employee;
+    });
+    setEmployees(updatedEmployees);
     alerts.confirmActionSuccess("Employee saved with success");
-    //return partialEmployee;
   };
 
   const onViewEmployeeDetails = id => {
@@ -55,6 +65,10 @@ export const EmployeeMainPanel = () => {
 
   const onDelete = id => {
     console.log(id);
+    const employeesToKeep = employees.filter(
+      employee => employee.id !== id
+    );
+    setEmployees(employeesToKeep);
     alerts.confirmActionSuccess("Employee deleted with success");
   };
 
