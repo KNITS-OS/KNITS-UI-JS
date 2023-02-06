@@ -18,7 +18,8 @@ import {
   deleteEmployee,
   searchEmployees,
   updateEmployee,
-  selectAllEmployeeData 
+  searchEmployee,
+  selectEmployeesState 
 } from "redux/features";
 
 import { CreateEmployeePanel } from "./create-employee/CreateEmployee.panel";
@@ -27,32 +28,33 @@ import { EMPLOYEE_CREATE, EMPLOYEE_DETAILS, EMPLOYEE_SEARCH } from "./employee.r
 import { SearchEmployeesPanel } from "./search-employees/SearchEmployees.panel";
 import { alerts } from "components/feedback";
 
+
 export const EmployeeMainPanel = () => {
-  const [activePanel, setActivePanel] = useState(EMPLOYEE_SEARCH);
-
-  const [currentEmployee, setCurrentEmployee] = useState({});
-
   const dispatch = useDispatch();
-  const employees = useSelector(selectAllEmployeeData);
- 
+  
+  const {
+    entities:employees,
+    entity:currentEmployee
+  } = useSelector(selectEmployeesState);
+  
+  const [activePanel, setActivePanel] = useState(EMPLOYEE_SEARCH);
   const departments = departmentDataAsSelectOptions(departmentsData);
   const countriesData = countriesDataAsSelectOptions(countries());
   const businessUnits = businessUnitsDataAsSelectOptions(businessUnitsData);
   const jobtitles = jobTitlesDataAsSelectOptions(jobTitlesData);
- 
+
+
+
   const onCreateNew = (newEmployee) => {
-    dispatch(createEmployee(newEmployee));
-    alerts.successAlert("Saved with success", "Success");
+    dispatch(createEmployee(newEmployee));   
   };
 
   const onSave = (partialEmployee) => {
-    dispatch(updateEmployee(partialEmployee));
-    alerts.successAlert("Updated with success", "Success");
+    dispatch(updateEmployee(partialEmployee));  
   };
 
   const onViewEmployeeDetails = (id) => {
-    const foundEmployee = employees.find((employee) => employee.id === id);
-    setCurrentEmployee(foundEmployee);
+    dispatch(searchEmployee(id));
     setActivePanel(EMPLOYEE_DETAILS);
   };
 
@@ -63,11 +65,15 @@ export const EmployeeMainPanel = () => {
   const onDelete = async (id) => {
     const { isConfirmed } = await alerts.confirmActionDanger("Are you sure?");
     if (isConfirmed) {
-      dispatch(deleteEmployee(parseInt(id)));
-      alerts.successAlert("Employee deleted with success", "Success");
+      await onDeleteConfirmed(id);
     }
-    
   };
+
+  const onDeleteConfirmed = async (id) => {
+    dispatch(deleteEmployee(id));
+  };
+
+
 
 
   return (
